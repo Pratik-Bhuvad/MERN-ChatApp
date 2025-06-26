@@ -5,6 +5,7 @@ import MessageInput from './MessageInput'
 import MessageSkeleton from './skeletons/MessageSkeleton'
 import { useAuthStore } from '../store/useAuthStore'
 import { formatMessageTime } from '../lib/utils'
+import { Lock } from 'lucide-react'
 
 const ChatContainer = () => {
   const { message, getMessages, isMessagesLoading, selectedUser, listenMessages, notListenMessage } = useChatStore()
@@ -55,7 +56,7 @@ const ChatContainer = () => {
                     <img src={message.image} alt="attachment" className='sm:max-w-[200px] rounded-md mb-2' />
                   )
                 }
-                {message.text && <p>{message.text}</p>}
+                {message.text && <p className="flex items-center gap-1"><Lock className="w-3 h-3 text-green-500" /> {message.text}</p>}
               </div>
             </div>
           ))

@@ -12,7 +12,7 @@ const messageSchema = mongoose.Schema({
         required: true,
     },
     text: {
-        type: String,
+        type: String, // Encrypted text
     },
     image: {
         type: String,

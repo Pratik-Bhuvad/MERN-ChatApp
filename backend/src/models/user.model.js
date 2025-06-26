@@ -17,7 +17,12 @@ const userSchema = mongoose.Schema({
     avatar:{
         type: String,
         default: ''
-    }
+    },
+    contacts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }]
 }, {timestamps: true})
 
 const User = mongoose.model('User', userSchema)

@@ -5,9 +5,8 @@ const { getReceiverSocketId, io } = require('../lib/socket');
 
 const getUsers = async (req, res) => {
     try {
-        const users = await User.find({ _id: { $ne: req.user._id } }).select('-password')
-
-        res.status(200).json({ success: true, users })
+        const user = await User.findById(req.user._id).populate('contacts', 'fullName email avatar');
+        res.status(200).json({ success: true, users: user.contacts })
     } catch (error) {
         console.log("Get Users Error: ", error.message);
         res.status(500).json({ success: false, message: 'Internal Server Error' })
@@ -18,14 +17,16 @@ const getMessage = async (req, res) => {
     try {
         const { id: userToChatId } = req.params
         const myId = req.user._id
-
+        const user = await User.findById(myId)
+        if (!user.contacts.includes(userToChatId)) {
+            return res.status(403).json({ success: false, message: 'Not a contact' })
+        }
         const messages = await Message.find({
             $or: [
                 { senderId: myId, receiverId: userToChatId },
                 { senderId: userToChatId, receiverId: myId },
             ]
         })
-
         res.status(200).json({ success: true, messages: messages })
     } catch (error) {
         console.log("Message Receiving Error: ", error.message);
@@ -38,7 +39,10 @@ const sendMessage = async (req, res) => {
         const { text, image } = req.body
         const { id: receiverId } = req.params
         const senderId = req.user._id
-
+        const user = await User.findById(senderId)
+        if (!user.contacts.includes(receiverId)) {
+            return res.status(403).json({ success: false, message: 'Not a contact' })
+        }
         let imageUrl;
         if (image) {
             const uploadResponse = await cloudinary.uploader.upload(image)
@@ -51,12 +55,10 @@ const sendMessage = async (req, res) => {
             image: imageUrl
         })
         await newMessage.save()
-
         const receiverSocketId = getReceiverSocketId(receiverId)
         if(receiverSocketId){
             io.to(receiverSocketId).emit("newMessage", newMessage)
         }
-
         res.status(201).json({ success: true, message: newMessage })
     } catch (error) {
         console.log("Message Sending Error: ", error.message);
